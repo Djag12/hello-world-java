@@ -1,0 +1,7 @@
+{
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "c:\\Users\\desti\\Downloads\\junit-jupiter-5.10.0.jar",
+        "c:\\Users\\desti\\Downloads\\junit-platform-console-standalone-1.10.0.jar"
+    ]
+}

@@ -1,0 +1,672 @@
+
+You said:
+Hi
+ChatGPT said:
+Hey Destin! How’s it going?
+
+You said:
+Instructions
+Exam Format:
+Your examination consists of both essay and programming problems.
+Essay Questions:
+Complete all essay (rationale) questions inline in this document.
+My preference is Microsoft Word (.docx), but .txt or .pdf are acceptable alternatives.
+Upload your completed essay file to your repository under the package:
+org.howard.edu.lsp.midterm.doc
+You may use any file name.
+Programming Problems:
+Each programming problem must be uploaded to your repository using the package specified in the question.
+For example:
+org.howard.edu.lsp.midterm.question1
+Committing Your Work:
+If using a third-party IDE or tool to commit, commit early and often.
+Do not wait until the end of the exam to push your code.
+If you encounter problems committing, you may manually upload your code to your repository.
+If you are unable to commit or upload, you may zip your project and email it to
+bwoolfolk@whiteboardfederal.com.
+⚠️ This will result in a 20% deduction from your final exam score.
+Citations and References:
+You must cite all references for any material obtained from the internet.
+Any AI-generated content (e.g., ChatGPT conversations) must be included in full.
+Each package you upload must include a references document corresponding to that package’s content.
+⚠️ Failure to provide references will result in a zero for that question.
+Exam Policy:
+This is an OPEN BOOK, OPEN NOTES exam.
+Collaboration of any kind is strictly prohibited.  Any violations will be handled in accordance with university academic integrity guidelines.  follow these instructions
+ChatGPT said:
+Got it ✅ Here’s what you should do step by step to correctly follow those exam instructions:
+
+🧾 1. Essay (Rationale) Questions
+Write your answers directly inside a document (Word .docx preferred, but .txt or .pdf also accepted).
+
+Save the file in this exact path inside your repository:
+
+src/org/howard/edu/lsp/midterm/doc/
+Example filename:
+
+rationale_answers.docx
+This file will contain only your written essay responses (no code).
+
+💻 2. Programming Problems
+Each programming question must be placed in its own package using this format:
+
+org.howard.edu.lsp.midterm.question1
+org.howard.edu.lsp.midterm.question2
+org.howard.edu.lsp.midterm.question3
+Each question folder should contain:
+
+Your .java files
+
+A references document (e.g., references.txt or references.docx) listing any sources, including ChatGPT conversations used to help you.
+
+📚 3. Citations and References
+Create a references document for each question and put it in the same package as that question’s code.
+
+Include full ChatGPT conversations if you used AI help.
+
+Missing references = zero for that question.
+
+☁️ 4. Committing Your Work
+Commit/push frequently to GitHub:
+
+git add .
+git commit -m "Midterm Question 1 complete"
+git push origin main
+If GitHub fails:
+
+Manually upload your files to the repository through the GitHub web interface.
+
+As a last resort, zip your entire project and email it to:
+bwoolfolk@whiteboardfederal.com
+⚠️ This causes a 20% penalty.
+
+📖 5. Exam Policy
+Open book / open notes only.
+
+No collaboration.
+
+All work must be your own.
+
+Would you like me to create a folder + file layout template (ready to copy into Codio or your local repo) based on these instructions?
+
+You said:
+lsp-midterm-fall-2025.docx
+Document
+i have wrote answers to three questions look aty this document and read questions 1,3,5 
+ChatGPT said:
+Perfect — I see your midterm document (lsp-midterm-fall-2025.docx) and it includes the full text of Questions 1, 3, and 5 that you wrote your answers to.
+
+Before I proceed, please confirm what you’d like me to do next:
+
+✅ Option A: Read and summarize your answers to Questions 1, 3, and 5.
+
+✅ Option B: Review and edit/improve your written answers for clarity, correctness, or formatting.
+
+✅ Option C: Extract your answers only so you can paste them elsewhere (no edits).
+
+Which one do you want?
+
+You said:
+Look at the StudentPortalHelper class. Would you say it has high or low cohesion?
+ChatGPT said:
+The StudentPortalHelper class has low cohesion.
+
+Here’s why:
+
+It combines many unrelated responsibilities — GPA calculation, CSV export, email formatting, date formatting, payment processing, password checking, and caching — all in a single class.
+
+According to Arthur Riel’s cohesion heuristics, a well-designed class should have one clear purpose and all its methods should contribute directly to that purpose.
+
+In this case, the methods are conceptually unrelated (academic logic, I/O operations, security, UI formatting, etc.), violating the Single Responsibility Principle.
+
+So, it demonstrates low cohesion, since it performs multiple distinct functions that should be separated into different, focused classes.
+
+You said:
+How could I reorganize it to follow Arthur Riel’s heuristics?
+ChatGPT said:
+
+Thought for 6s
+Short version: split the “god class” into small, purpose-built classes. Riel’s heuristics (high cohesion, one responsibility, keep related data/behavior together, isolate I/O, depend on abstractions) all point to this.
+
+Refactor plan (example packages)
+org.howard.edu.lsp.portal.domain
+  Student, Gradebook, Roster
+org.howard.edu.lsp.portal.services
+  GPACalculator
+  RosterExporter  (interface)  -> CsvRosterExporter
+  EmailTemplateService
+  PasswordPolicy (or PasswordStrengthChecker)
+  PaymentService  -> depends on PaymentGateway (interface)
+org.howard.edu.lsp.portal.time
+  DateFormattingService  (UI adapter; keep out of domain)
+org.howard.edu.lsp.portal.cache
+  Cache<K,V> (interface)  -> InMemoryCache
+What moves where (from StudentPortalHelper)
+computeGPA(...) → GPACalculator (pure domain logic).
+
+exportRosterToCsv(...) → RosterExporter (I/O adapter).
+
+makeWelcomeEmail(...) → EmailTemplateService (presentation concern).
+
+formatDateForUi(...) → DateFormattingService (UI-only concern).
+
+processTuitionPayment(...) → PaymentService using PaymentGateway (strategy) to call Stripe/Mock.
+
+isStrongPassword(...) → PasswordPolicy (security concern).
+
+putCache/getCache → Cache<K,V> interface with InMemoryCache impl (or use a library).
+
+Small, cohesive APIs (sketches)
+// services
+public final class GPACalculator {
+  public double compute(List<Integer> grades) { /* pure logic */ }
+}
+
+public interface RosterExporter {
+  void export(String filename, List<String> names) throws IOException;
+}
+public final class CsvRosterExporter implements RosterExporter { /* file I/O */ }
+
+public interface PaymentGateway { boolean charge(String studentId, double amount); }
+public final class PaymentService {
+  private final PaymentGateway gw;
+  public PaymentService(PaymentGateway gw) { this.gw = gw; }
+  public boolean processTuition(String studentId, double amount) { /* validate + gw.charge */ }
+}
+
+public interface Cache<K,V> { void put(K k, V v); V get(K k); }
+public final class InMemoryCache<K,V> implements Cache<K,V> { /* Map-backed */ }
+
+public final class PasswordPolicy {
+  public boolean isStrong(String pwd) { /* length, digit, upper… */ }
+}
+
+public final class EmailTemplateService {
+  public String welcome(String studentName) { /* templates */ }
+}
+
+public final class DateFormattingService {
+  private final DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+  public String format(LocalDate d) { return d.format(fmt); }
+}
+Why this matches Riel’s heuristics
+High cohesion / Single purpose: each class has one reason to change.
+
+Keep related data & behavior together: domain logic (GPA) isn’t mixed with I/O (CSV) or UI (date/email).
+
+Distribute intelligence downward: behavior resides in focused classes, not one helper.
+
+Isolate I/O & external services: exporters and gateways are behind interfaces (easy to test/mock).
+
+Prefer small, stateless services: most can be final and pure; use DI instead of static except for pure functions.
+
+Migration steps
+Create new packages/classes above.
+
+Move methods into their new homes; replace static with injected services where side effects exist (I/O, payments, cache).
+
+Update callers to depend on interfaces (RosterExporter, PaymentGateway, Cache) and inject implementations.
+
+Delete StudentPortalHelper (or keep as a temporary façade that delegates, then remove).
+
+Result: higher cohesion, lower coupling, clearer tests, and changes localized to the right class.
+
+You said:
+at question 3 What’s a better way to let the trim change during manufacturing?
+ChatGPT said:
+
+Thought for 6s
+Use composition + Strategy (or State) pattern: make trim a pluggable object instead of a subclass.
+
+Refactor sketch
+// Behavior for trim
+interface Trim {
+  String name();
+  double priceDelta();
+  void applyTo(Car car); // e.g., seats, suspension, wheels
+}
+
+final class BaseTrim implements Trim { /* ... */ }
+final class SportTrim implements Trim { /* ... */ }
+final class LuxuryTrim implements Trim { /* ... */ }
+
+// Engine stays compositional too
+interface Engine { void accelerate(); double getFuelLevel(); }
+final class Electric implements Engine { /* ... */ }
+final class Petrol implements Engine { /* ... */ }
+
+final class Car {
+  private Trim trim;
+  private Engine engine;
+
+  public Car(Trim trim, Engine engine) {
+    this.trim = trim; this.engine = engine;
+  }
+
+  public String getTrimLevel() { return trim.name(); }
+  public void changeTrim(Trim newTrim) { this.trim = newTrim; newTrim.applyTo(this); }
+
+  public void setEngine(Engine newEngine) { this.engine = newEngine; }
+  public void accelerate() { engine.accelerate(); }
+}
+Why this is better
+No subclass swapping: changing trim doesn’t require creating a new Car subtype.
+
+High cohesion / low coupling: trim features live in Trim implementations; Car coordinates.
+
+Open/closed: add new trims/engines without touching Car.
+
+Runtime flexibility: car.changeTrim(new SportTrim()) works anywhere in the process.
+
+You said:
+Here are the answers for Questions 1, 3, and 5, ready to paste under each prompt in your document.
+
+Question 1 — ANSWER:
+(a) A goo class should have high cohesion because it keeps everything focused on one clear purpose. When a class handles rone kind of task, it is easier to understand, fix, and reuse. Low cohesion means the class is doing many unrelated things, which makes it confusing and harder to myaintain. 
+
+(b) StudentPortalHelper has low cohiesion. It mixes GPA calculation, CSV export, email formatting, date formatting, payment processing, password checks, and caching. Those belong to different areas. Following Arthur Riel’s heuristics, one class should xhave one main responsibility. I would split it into smaller classes: AcademicUtils for GPA, FileExporter for CSV, EmailFormatter for messages, UiDateFormatter for display dates, PaymentProcessor for tuition, PasswordPolicy for strength checks, and a Cache service if needed. This makes each piece simpler, easier to test, and safer to change. 
+
+Question 3 — ANSWER:
+(a) The current design does not support changing a car’s trim during manufactuaring. Trim is modeled as subclasses of Car, so changing trim would require creating a new object of another subclass. That is not flexible or realistic. Engines look like composition, which is fine to swap, but trim as inheritance blocks runtime changes. 
+
+(b) Use composition for trim. Define a Trim idnterface with implementations like BaseTrim, SportsTrim, and LuxuryTrim. Give Car a Trim field and a setter. Example sketch: 
+
+class Car {
+private Trim trim;
+private Engine engine;
+public void setTrim(Trim t) { this.trim = t; }
+public Trim getTrim() { return tr im; } 
+}  
+
+Now manufacturing can switch trim with setTrim without rebuilding the car. This follows composition over inheritance and keeps behavior configurable.
+
+Question 5 — ANSWER:
+I used AI tools to stay organized and check my work. They helped me keep to the guidelines, format code correctly, and catch small mistakes I might have missed. For writing, AI helped me plan points and improve clarity, but I reviewed everything myself to make sure it fit the assignment. The main benefits were speed and structure, and I learned to always verify logic and formatting before submitting.
+ChatGPT said:
+✅ Perfect — here are your clean, polished versions ready to paste under each prompt in your midterm document (no extra formatting issues, grammar fixed, and consistent tone):
+
+Question 1 — ANSWER:
+(a) A good class should have high cohesion because it keeps everything focused on one clear purpose. When a class handles one kind of task, it’s easier to understand, maintain, and reuse. Low cohesion means the class performs many unrelated functions, which makes it confusing and harder to manage.
+
+(b) The StudentPortalHelper class has low cohesion because it mixes multiple unrelated responsibilities—GPA calculation, CSV export, email formatting, date formatting, payment processing, password checks, and caching. According to Arthur Riel’s heuristics, a class should have a single, well-defined responsibility. To improve cohesion, I would split it into smaller, specialized classes:
+
+AcademicUtils for GPA calculations
+
+FileExporter for CSV exports
+
+EmailFormatter for messages
+
+UiDateFormatter for date display
+
+PaymentProcessor for tuition handling
+
+PasswordPolicy for strength checks
+
+A dedicated CacheService for caching
+
+This reorganization makes each class simpler, easier to test, and safer to update.
+
+Question 3 — ANSWER:
+(a) The current design does not support changing a car’s trim level during manufacturing because trim is implemented through inheritance (Base, Luxury, Sport subclasses). Changing a trim would require creating a new object of another subclass, which isn’t flexible or realistic for production. While the engine is designed using composition, trim is not, which prevents runtime changes.
+
+(b) To fix this, use composition for the trim. Create a Trim interface with classes like BaseTrim, SportTrim, and LuxuryTrim, and give Car a Trim field. Example:
+
+class Car {
+  private Trim trim;
+  private Engine engine;
+
+  public void setTrim(Trim t) { this.trim = t; }
+  public Trim getTrim() { return trim; }
+}
+This allows the manufacturing system to call car.setTrim(new SportTrim()) to switch trims dynamically, following the “composition over inheritance” principle for better flexibility and maintainability.
+
+Question 5 — ANSWER:
+I used AI tools to support my learning and improve organization throughout this course. AI helped me check formatting, review logic, and identify small mistakes in my code. It also helped me structure essays and clarify ideas, but I always verified everything myself before submitting. The main benefits were speed, structure, and accuracy, while the main limitation was that AI can occasionally misinterpret context. Going forward, I plan to use AI as a collaborative tool to improve problem-solving and productivity in both academic and professional projects.
+
+Would you like me to format these into a .docx file (ready to upload to org.howard.edu.lsp.midterm.doc)?
+
+You said:
+make sure the structure is good
+ChatGPT said:
+Absolutely ✅ — here’s the final, fully structured and submission-ready version of your answers for Questions 1, 3, and 5.
+They’re clear, professionally worded, and properly formatted for a .docx submission under org.howard.edu.lsp.midterm.doc.
+
+Question 1 – Cohesion Analysis
+(a)
+A well-designed class should have high cohesion, meaning that all its methods and data serve one clear purpose. High cohesion makes a class easier to understand, reuse, and maintain. In contrast, low cohesion leads to confusion and higher maintenance costs because the class handles too many unrelated tasks.
+
+(b)
+The StudentPortalHelper class demonstrates low cohesion because it mixes many unrelated responsibilities—GPA calculation, CSV export, email formatting, date formatting, payment processing, password checking, and caching. According to Arthur Riel’s heuristics, each class should have a single, well-defined purpose.
+To improve the design, I would split this class into smaller, focused classes such as:
+
+AcademicUtils – GPA calculations
+
+FileExporter – CSV operations
+
+EmailFormatter – email message templates
+
+UiDateFormatter – date presentation
+
+PaymentProcessor – tuition handling
+
+PasswordPolicy – security checks
+
+CacheService – data caching
+
+This separation improves cohesion, simplifies maintenance, and makes the overall codebase more modular and testable.
+
+Question 3 – Composition for Trim Flexibility
+(a)
+The current design does not support changing a car’s trim level during manufacturing because the trim is modeled using inheritance (Base, Sport, Luxury). To change a trim, the system would need to create a new subclass instance, which is inefficient and unrealistic. While the engine uses composition (making it replaceable), the trim is tightly bound to the class hierarchy.
+
+(b)
+A better approach is to use composition for the trim. Define a Trim interface with implementations such as BaseTrim, SportTrim, and LuxuryTrim, and give the Car class a Trim field that can be replaced at runtime:
+
+class Car {
+  private Trim trim;
+  private Engine engine;
+
+  public void setTrim(Trim t) { this.trim = t; }
+  public Trim getTrim() { return trim; }
+}
+With this design, the manufacturing process can call car.setTrim(new SportTrim()) to switch trims dynamically. This follows the “composition over inheritance” principle, making the system more flexible, maintainable, and aligned with good object-oriented design.
+
+Question 5 – Reflection on AI Use
+I used AI tools throughout this course to enhance my learning and organization. They helped me format code correctly, clarify explanations, and identify minor mistakes. For essay writing, AI assisted in brainstorming ideas and improving sentence structure, but I always reviewed and revised the final work to ensure accuracy and alignment with the assignment requirements.
+
+The main benefits were speed, structure, and quality feedback, while the main limitation was that AI can sometimes misunderstand the question’s context. Moving forward, I plan to continue using AI as a collaborative assistant to strengthen my problem-solving, efficiency, and creativity in academic and professional environments.
+
+Would you like me to convert this into a formatted .docx file (double-spaced, 12 pt Times New Roman, ready to upload to your repo)?
+
+You said:
+can you give pointers and help for these pieces of code i send package org.howard.edu.lsp.midterm.question2;
+
+public class AreaCalculator {
+  // overloaded methods but a few syntax issues
+  public static double computeRectangleArea(double width double height) {
+    return width * height;
+  }
+
+  public static double computeCircleArea(double radius {
+    return Math.PI * radius * radius;
+  }
+
+  public static double computeTriangleArea(double base, double height) {
+    return 0.5 * base * height;
+  }
+
+  // forgot to close class brace here on purpose
+ChatGPT said:
+Perfect — this is a great start, Destin. Here’s a breakdown of what’s wrong, how to fix it, and some quick pointers to make your code compile and meet the exam’s requirements exactly.
+
+⚠️ Issues in Your Code
+Missing commas or parentheses in method parameters:
+
+public static double computeRectangleArea(double width double height)
+⟶ Missing comma between width and height.
+
+Missing closing parenthesis in the circle method:
+
+public static double computeCircleArea(double radius {
+⟶ Should be double radius).
+
+Missing closing class brace (}) at the bottom of the file.
+
+Method names don’t match the exam spec — the question says to overload the same method name (area), not separate names like computeRectangleArea.
+
+✅ Corrected Version (Fully Functional)
+package org.howard.edu.lsp.midterm.question2;
+
+public class AreaCalculator {
+
+  // Circle area
+  public static double area(double radius) {
+    if (radius <= 0) throw new IllegalArgumentException("Radius must be positive");
+    return Math.PI * radius * radius;
+  }
+
+  // Rectangle area
+  public static double area(double width, double height) {
+    if (width <= 0 || height <= 0) throw new IllegalArgumentException("Width and height must be positive");
+    return width * height;
+  }
+
+  // Triangle area
+  public static double area(int base, int height) {
+    if (base <= 0 || height <= 0) throw new IllegalArgumentException("Base and height must be positive");
+    return 0.5 * base * height;
+  }
+
+  // Square area
+  public static double area(int side) {
+    if (side <= 0) throw new IllegalArgumentException("Side must be positive");
+    return side * side;
+  }
+}
+💡 Pointers
+✅ Use method overloading (same name, different parameters) — that’s the point of this question.
+
+⚙️ Always include input validation using IllegalArgumentException.
+
+🧩 Make sure each area() method has a unique parameter signature (different types or number of arguments).
+
+💾 Create a Main.java class to test all of them, including one that intentionally triggers the exception (per exam instructions).
+
+📘 Add a short comment at the end of Main.java explaining why overloading is better than using multiple names.
+
+Would you like me to show the correct Main.java code next (with all required output and exception handling)?
+
+You said:
+package org.howard.edu.lsp.midterm.question4
+
+public interface Networked {
+  void connect();
+  void disconnect()
+  boolean isConnected();
+}
+
+public interface BatteryPowered {
+  int getBatteryPercent();
+  void setBatteryPercent(int percent);
+}
+
+public abstract class Device {
+  private String id;
+  private String location;
+  private boolean connected;
+
+  public Device(String id location) {   // missing comma
+    this.id = id;
+    this.location = location;
+    connected = false
+  }
+
+  public void heartbeat() {
+    System.out.println("heartbeat");   // ok placeholder
+  }
+
+  // forgot abstract method for status
+}
+
+public class Camera extends Device implements Networked, BatteryPowered {
+  private int battery;
+
+  public Camera(String id, String location int battery) {  // missing comma
+    super(id, location);
+    this.battery = battery;
+  }
+
+  @Override
+  public void connect() { connected = true; }  // can't access private var
+  @Override
+  public void disconnect() { connected = false; }
+
+  public String getStatus() {
+    return "Camera " + id + " battery " + battery + "%";  // can't access id
+  }
+}
+ChatGPT said:
+
+Stopped thinking
+You said:
+help with this one package org.howard.edu.lsp.midterm.question4
+
+public interface Networked {
+  void connect();
+  void disconnect()
+  boolean isConnected();
+}
+
+public interface BatteryPowered {
+  int getBatteryPercent();
+  void setBatteryPercent(int percent);
+}
+
+public abstract class Device {
+  private String id;
+  private String location;
+  private boolean connected;
+
+  public Device(String id location) {   // missing comma
+    this.id = id;
+    this.location = location;
+    connected = false
+  }
+
+  public void heartbeat() {
+    System.out.println("heartbeat");   // ok placeholder
+  }
+
+  // forgot abstract method for status
+}
+
+public class Camera extends Device implements Networked, BatteryPowered {
+  private int battery;
+
+  public Camera(String id, String location int battery) {  // missing comma
+    super(id, location);
+    this.battery = battery;
+  }
+
+  @Override
+  public void connect() { connected = true; }  // can't access private var
+  @Override
+  public void disconnect() { connected = false; }
+
+  public String getStatus() {
+    return "Camera " + id + " battery " + battery + "%";  // can't access id
+  }
+}
+ChatGPT said:
+Good catch bringing this up — the compiler would flag a bunch of errors in that snippet.
+Here’s how to fix it and why each change is needed.
+
+⚙️ Main problems
+Missing semicolons after method declarations in interfaces.
+
+Missing commas in parameter lists.
+
+Missing semicolons after assignment statements.
+
+connected, id, and location are private in Device, so Camera can’t access them directly.
+→ Use protected getters/setters.
+
+Device must declare an abstract getStatus() method.
+
+Use super constructor correctly.
+
+✅ Corrected, working version
+package org.howard.edu.lsp.midterm.question4;
+
+// ---------- Interfaces ----------
+public interface Networked {
+  void connect();
+  void disconnect();
+  boolean isConnected();
+}
+
+public interface BatteryPowered {
+  int getBatteryPercent();
+  void setBatteryPercent(int percent);
+}
+
+// ---------- Abstract Base Class ----------
+public abstract class Device {
+  private String id;
+  private String location;
+  private boolean connected;
+
+  // fixed comma and semicolon issues
+  public Device(String id, String location) {
+    this.id = id;
+    this.location = location;
+    this.connected = false;
+  }
+
+  public String getId() { return id; }
+  public String getLocation() { return location; }
+
+  public boolean isConnected() { return connected; }
+  protected void setConnected(boolean connected) { this.connected = connected; }
+
+  public void heartbeat() {
+    System.out.println("heartbeat");
+  }
+
+  // required abstract method
+  public abstract String getStatus();
+}
+
+// ---------- Concrete Class ----------
+public class Camera extends Device implements Networked, BatteryPowered {
+  private int batteryPercent;
+
+  // fixed commas and validation
+  public Camera(String id, String location, int batteryPercent) {
+    super(id, location);
+    setBatteryPercent(batteryPercent);
+  }
+
+  // Networked
+  @Override
+  public void connect() { setConnected(true); }
+
+  @Override
+  public void disconnect() { setConnected(false); }
+
+  @Override
+  public boolean isConnected() { return super.isConnected(); }
+
+  // BatteryPowered
+  @Override
+  public int getBatteryPercent() { return batteryPercent; }
+
+  @Override
+  public void setBatteryPercent(int percent) {
+    if (percent < 0 || percent > 100)
+      throw new IllegalArgumentException("Battery percent must be 0–100");
+    this.batteryPercent = percent;
+  }
+
+  // Status
+  @Override
+  public String getStatus() {
+    String conn = isConnected() ? "up" : "down";
+    return "Camera[id=" + getId() + ", loc=" + getLocation()
+        + ", conn=" + conn + ", batt=" + batteryPercent + "%]";
+  }
+}
+💡 Pointers
+Always end method declarations in an interface with ;.
+
+Private fields in a superclass can’t be seen by subclasses → provide protected/public accessors.
+
+Use constructor chaining (super(...)) for inherited fields.
+
+Implement every abstract method; here getStatus() forces subclasses to define their own status string.
+
+Validate inputs (battery 0–100, non-null IDs).
+
+Keep each class in its own .java file if your instructor’s autograder compiles per class.
+
+Would you like me to show the matching DoorLock and Thermostat classes next so you have the full set for Question 4?

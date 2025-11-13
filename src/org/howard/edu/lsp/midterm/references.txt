@@ -1,0 +1,2 @@
+I used ChatGPT to assist with maintaining correct structure and formatting for the AreaCalculator and Smart-Campus Device System implementations.
+AI guidance helped ensure that the code and written responses followed the midterm’s guidelines, used proper object-oriented structure, and were typed correctly according to Java syntax requirements.
