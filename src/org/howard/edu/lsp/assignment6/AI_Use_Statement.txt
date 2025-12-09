@@ -1,0 +1,1 @@
+I used AI as a support tool to help with formatting my Java code and ensuring the structure matched the assignment requirements.AI helped make sure i fixed my errors as well. AI also assisted me in understanding how to correctly integrate JUnit tests into my project setup in Visual Studio Code. All logic, implementation decisions, and final code were written and reviewed by me.
